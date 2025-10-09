@@ -5,7 +5,7 @@
 import BinarySearchTree ( Tree, emptyTree, insert, search, inOrderTraversal )
 import Data.Foldable ( foldl' )
 import System.IO ( hFlush, stdout )
-import Text.Read ( readMaybe ) -- 提案1: 安全な読み込みのために readMaybe をインポート
+import Text.Read ( readMaybe ) -- 安全な読み込みのために readMaybe をインポート
 
 -- | 構築された木に対して、連続して検索を行うためのループ関数
 searchLoop :: Tree Int -> IO ()
@@ -14,7 +14,7 @@ searchLoop tree = do
     hFlush stdout
     input <- getLine
 
-    -- 提案1: readMaybe を使った例外対策を実装
+    -- readMaybe を使った例外対策を実装
     case input of
         "q"    -> putStrLn "プログラムを終了します。お疲れ様でした！"
         "quit" -> putStrLn "プログラムを終了します。お疲れ様でした！"
@@ -48,4 +48,5 @@ main = do
     putStrLn $ "木の要素（ソート済み）: " ++ show (inOrderTraversal tree)
 
     -- 構築した木を引数として、検索ループを開始する
+
     searchLoop tree
