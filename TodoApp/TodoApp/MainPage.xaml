@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:TodoApp"
+             x:Class="TodoApp.MainPage"
+             x:DataType="local:MainViewModel"
+             Title="ToDo List">
+
+    <VerticalStackLayout Spacing="10" Padding="15">
+
+        <HorizontalStackLayout Spacing="10">
+            <Entry Placeholder="新しいタスクを入力" 
+                   Text="{Binding NewTodoText}" 
+                   HorizontalOptions="FillAndExpand"/>
+            <Button Text="追加" 
+                    Command="{Binding AddTodoCommand}"/>
+        </HorizontalStackLayout>
+
+        <CollectionView ItemsSource="{Binding Todos}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="local:TodoItem">
+                    <Grid Padding="5" ColumnDefinitions="*,Auto">
+
+                        <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                            <CheckBox IsChecked="{Binding IsChecked}"/>
+                            <Label Text="{Binding Task}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Button 
+                            Grid.Column="1"
+                            Text="削除"
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type local:MainViewModel}}, Path=DeleteTodoCommand}"
+                            CommandParameter="{Binding .}" 
+                            BackgroundColor="Red"
+                            TextColor="White"
+                            Padding="10,5"/>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </VerticalStackLayout>
+</ContentPage>
