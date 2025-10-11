@@ -1,5 +1,4 @@
 <details> <summary>Haskell</summary>
------
 
 # Haskell製 二分探索木ユーティリティ
 
