@@ -80,9 +80,7 @@ $ ./Main
       * ユーザーとの対話を受け持つ実行ファイルです。`BinarySearchTree`モジュールを利用して、ユーザーの入力を処理し、結果を表示します。
 
 </details>
-はい、承知いたしました。ご提示の形式に合わせて、TodoAppのREADMEを作成します。
-
-\<details\> \<summary\>TodoApp</summary\>
+<details><summary>TodoApp</summary>
 
 # .NET MAUI製 ToDo管理アプリ
 
@@ -144,4 +142,5 @@ $ ./Main
   \* `MauiProgram.cs`
       \* アプリの起動時に、必要なクラスの登録（依存性の注入）など、初期設定を行うファイルです。
 
-\</details\>
+</details>
+
