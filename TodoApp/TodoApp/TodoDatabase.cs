@@ -19,7 +19,7 @@ namespace TodoApp
         // 全てのToDoアイテムを取得
         public Task<List<TodoItem>> GetItemsAsync()
         {
-            return _database.Table<TodoItem>().ToListAsync();
+            return _database.Table<TodoItem>().OrderBy(t => t.IsChecked).ThenBy(t => t.Id).ToListAsync();
         }
 
         // ToDoアイテムを保存 (新規追加 or 更新)

@@ -11,7 +11,7 @@ namespace TodoApp
         public int Id { get; set; }
 
         [SQLite.MaxLength(200)]
-        public string Task { get; set; }
+        public string Task { get; set; } = string.Empty; // 空文字列で初期化
 
         public bool IsChecked { get; set; }
     }

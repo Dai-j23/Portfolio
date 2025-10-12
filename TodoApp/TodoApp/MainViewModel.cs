@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace TodoApp
@@ -14,7 +15,7 @@ namespace TodoApp
 
         // 入力欄のテキストと連動するプロパティ
         [ObservableProperty]
-        private string _newTodoText;
+        private string _newTodoText = string.Empty; // 空文字列で初期化
 
         public MainViewModel(TodoDatabase database)
         {
@@ -28,9 +29,11 @@ namespace TodoApp
             if (todos != null)
             {
                 Todos.Clear();
+                Debug.WriteLine("--- Loading Todos ---"); // ← ログ出力1
                 foreach (var todo in todos)
                 {
                     Todos.Add(todo);
+                    Debug.WriteLine($"Adding: {todo.Task}, Checked: {todo.IsChecked}"); // ← ログ出力2
                 }
             }
         }
@@ -44,7 +47,7 @@ namespace TodoApp
             var newTodo = new TodoItem { Task = NewTodoText };
             await _database.SaveItemAsync(newTodo);
 
-            Todos.Add(newTodo); // リストに表示
+            LoadTodos(); // リストに表示
             NewTodoText = string.Empty; // 入力欄を空にする
         }
 
@@ -56,7 +59,19 @@ namespace TodoApp
             // データベースから削除
             await _database.DeleteItemAsync(todo);
             // 画面のリストからも削除
-            Todos.Remove(todo);
+            LoadTodos();
+        }
+
+        [RelayCommand]
+        private async Task UpdateTodoStatus(TodoItem todo)
+        {
+            if (todo == null) return;
+            Debug.WriteLine($"--- UpdateTodoStatus called for: {todo.Task} ---"); // ← ログ出力3
+
+            // データベース内のisCheckedの状態を更新
+            await _database.SaveItemAsync(todo);
+            // データベースからリストを再読み込みして、並び替えを反映させる
+            LoadTodos();
         }
     }
 }

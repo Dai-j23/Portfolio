@@ -2,19 +2,22 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:TodoApp"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit" 
              x:Class="TodoApp.MainPage"
              x:DataType="local:MainViewModel"
+             x:Name="this"
              Title="ToDo List">
 
     <VerticalStackLayout Spacing="10" Padding="15">
 
-        <HorizontalStackLayout Spacing="10">
-            <Entry Placeholder="新しいタスクを入力" 
-                   Text="{Binding NewTodoText}" 
-                   HorizontalOptions="FillAndExpand"/>
-            <Button Text="追加" 
-                    Command="{Binding AddTodoCommand}"/>
-        </HorizontalStackLayout>
+        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+            <Entry Grid.Column="0"
+           Placeholder="新しいタスクを入力" 
+           Text="{Binding NewTodoText}" />
+            <Button Grid.Column="1"
+            Text="追加" 
+            Command="{Binding AddTodoCommand}"/>
+        </Grid>
 
         <CollectionView ItemsSource="{Binding Todos}">
             <CollectionView.ItemTemplate>
@@ -22,14 +25,15 @@
                     <Grid Padding="5" ColumnDefinitions="*,Auto">
 
                         <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
-                            <CheckBox IsChecked="{Binding IsChecked}"/>
+                            <CheckBox IsChecked="{Binding IsChecked}"
+                                      CheckedChanged="TodoCheckBox_CheckedChanged" />
                             <Label Text="{Binding Task}" VerticalOptions="Center"/>
                         </HorizontalStackLayout>
 
                         <Button 
                             Grid.Column="1"
                             Text="削除"
-                            Command="{Binding Source={RelativeSource AncestorType={x:Type local:MainViewModel}}, Path=DeleteTodoCommand}"
+                            Command="{Binding BindingContext.DeleteTodoCommand, Source={x:Reference this}}"
                             CommandParameter="{Binding .}" 
                             BackgroundColor="Red"
                             TextColor="White"
