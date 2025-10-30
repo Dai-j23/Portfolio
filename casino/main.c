@@ -1,31 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-// 定義
-#define DATA_FILE_NAME "userdata.txt" // データファイル名
-#define INITIAL_MONEY 1000            // 初期所持金
-#define NAME_LENGTH 10                // ユーザー名の最大長
-#define MAX_USERS 10                 // 最大ユーザー数
-
-// ユーザーデータを管理する構造体
-typedef struct {
-    char name[NAME_LENGTH];
-    long money;
-} UserData;
-
-// プロトタイプ宣言
-void saveData(UserData users[], int userCount);
-int loadData(UserData users[]);
-UserData* selectUser(UserData users[], int* userCount);
-void showRanking(UserData users[], int userCount);
-int compareUsersByMoney(const void* a, const void* b); // qsort用比較関数
-
-void playGame_Baccarat(UserData* user);
-void playGame_Blackjack(UserData* user);
-void playGame_Poker(UserData* user);
-void playGame_Roulette(UserData* user);
-void playGame_Chinchiro(UserData* user);
+﻿#include "casino.h"
 
 
 int main(void) {
@@ -34,6 +7,9 @@ int main(void) {
     UserData* currentUser = NULL; // 現在ログイン中のユーザー
 
     int choice = 0;
+
+    // 乱数の種を初期化 (初回実行時のみ)
+    srand(time(NULL));
 
     // 全ユーザーデータの読み込み
     userCount = loadData(users);
@@ -101,10 +77,11 @@ int main(void) {
             break;
         }
 
-        // 所持金がマイナスになった場合の処理 (破産)
-        if (currentUser->money < 0) {
+        // 所持金がなくなった場合の処理 (破産)
+        if (currentUser->money < 1) {
             printf("%s さんは破産しました！\n", currentUser->name);
-            printf("所持金を %ld 円にリセットします。\n", INITIAL_MONEY);
+            currentUser->bankruptCount++; // 破産回数をインクリメント
+            printf("所持金を %ld 円にリセットします。(破産回数: %d回)\n", INITIAL_MONEY, currentUser->bankruptCount);
             currentUser->money = INITIAL_MONEY;
         }
 
@@ -118,7 +95,6 @@ int main(void) {
 // 全ユーザーデータをファイルに保存する
 // users 保存するデータが入ったUserData配列
 // userCount 保存するユーザー数
-
 void saveData(UserData users[], int userCount) {
     FILE* fp;
 
@@ -132,6 +108,7 @@ void saveData(UserData users[], int userCount) {
     for (int i = 0; i < userCount; i++) {
         fprintf(fp, "%s\n", users[i].name);
         fprintf(fp, "%ld\n", users[i].money);
+        fprintf(fp, "%d\n", users[i].bankruptCount);
     }
 
     fclose(fp);
@@ -164,6 +141,12 @@ int loadData(UserData users[]) {
             break; // データが不正ならループ終了
         }
 
+        // 3行目 (破産回数) を読み込む
+        if (fscanf(fp, "%d", &(users[i].bankruptCount)) != 1) {
+            // 失敗した場合は 0 で初期化する
+            users[i].bankruptCount = 0;
+        }
+
         i++; // ユーザー数をインクリメント
     }
 
@@ -191,7 +174,7 @@ UserData* selectUser(UserData users[], int* userCount) {
             while (getchar() != '\n');
             continue;
         }
-        while (getchar() != '\n'); // バッファクリア
+        while (getchar() != '\n');
 
         switch (choice) {
         case 1: // ログイン
@@ -201,7 +184,7 @@ UserData* selectUser(UserData users[], int* userCount) {
             }
 
             printf("あなたの名前を入力してください (英数字): ");
-            if (scanf("%9s", tempName) != 1) { // 9文字までに制限 (バッファオーバーフロー対策)
+            if (scanf("%9s", tempName) != 1) { // 9文字までに制限
                 while (getchar() != '\n');
                 continue;
             }
@@ -210,7 +193,7 @@ UserData* selectUser(UserData users[], int* userCount) {
             // ユーザー検索
             for (int i = 0; i < *userCount; i++) {
                 if (strcmp(users[i].name, tempName) == 0) {
-                    printf("ログイン成功: %sさん\n", users[i].name);
+                    printf("ログイン成功: %s <%d>さん\n", users[i].name, users[i].bankruptCount);
                     return &users[i]; // 見つかったユーザーのポインタを返す
                 }
             }
@@ -224,7 +207,7 @@ UserData* selectUser(UserData users[], int* userCount) {
             }
 
             printf("新しい名前を入力してください (英数字・スペース不可): ");
-            if (scanf("%49s", tempName) != 1) {
+            if (scanf("%9s", tempName) != 1) {
                 while (getchar() != '\n');
                 continue;
             }
@@ -246,6 +229,7 @@ UserData* selectUser(UserData users[], int* userCount) {
             // 新規ユーザーを配列の末尾に追加
             strcpy(users[*userCount].name, tempName);
             users[*userCount].money = INITIAL_MONEY;
+            users[*userCount].bankruptCount = 0;
 
             printf("新規ユーザー '%s' さんを登録しました。(所持金: %ld)\n", users[*userCount].name, users[*userCount].money);
 
@@ -288,11 +272,13 @@ void showRanking(UserData users[], int userCount) {
     // 結果の表示
     printf("--- 所持金ランキング ---\n");
     for (int i = 0; i < userCount; i++) {
-        printf("%2d位: %-20s ( %ld 円 )\n",
+        char nameWithRank[NAME_LENGTH + 10];
+        sprintf(nameWithRank, "%s <%d>", rankingUsers[i].name, rankingUsers[i].bankruptCount);
+        printf("%2d位: %-*s ( %ld 円 )\n",
             i + 1,
-            rankingUsers[i].name,
+            NAME_LENGTH + 5,
+            nameWithRank,
             rankingUsers[i].money);
-        // 左詰め表示
     }
     printf("------------------------\n");
 }
@@ -313,25 +299,38 @@ int compareUsersByMoney(const void* a, const void* b) {
     }
 }
 
+// 掛け金を取得し、妥当性をチェックする関数
+// maxBet 所持金 (最大ベット額)
+// long 有効な掛け金 (0の場合はキャンセル)
+long getBet(long maxBet) {
+    long bet = 0;
+    while (1) {
+        printf("掛け金を入力してください (0 でゲーム選択に戻る): ");
+        if (scanf("%ld", &bet) != 1) {
+            printf("無効な入力です。数字を入力してください。\n");
+            while (getchar() != '\n');
+            continue;
+        }
+        while (getchar() != '\n');
 
-// 各ゲームのダミー関数
-void playGame_Baccarat(UserData* user) {
-    printf("[バカラをプレイします (現在は準備中です)]\n");
-    // テスト用: 所持金をランダムに増減させる
-    int bet = 100;
-    if (user->money < bet) {
-        printf("所持金が足りません！\n"); return;
-    }
-    if (rand() % 2 == 0) {
-        user->money += bet;
-        printf("%s は %d 円勝ちました！ (所持金: %ld)\n", user->name, bet, user->money);
-    }
-    else {
-        user->money -= bet;
-        printf("%s は %d 円負けました... (所持金: %ld)\n", user->name, bet, user->money);
+        if (bet < 0) {
+            printf("掛け金は 0 以上にしてください。\n");
+        }
+        else if (bet == 0) {
+            printf("ゲーム選択に戻ります。\n");
+            return 0;
+        }
+        else if (bet > maxBet) {
+            printf("所持金 (%ld 円) を超えて賭けることはできません。\n", maxBet);
+        }
+        else {
+            return bet;
+        }
     }
 }
+
+// 各ゲームのダミー関数
+void playGame_Baccarat(UserData* user) { printf("[バカラをプレイします (現在は準備中です)]\n");}
 void playGame_Blackjack(UserData* user) { printf("[ブラックジャックをプレイします (現在は準備中です)]\n"); }
 void playGame_Poker(UserData* user) { printf("[ポーカーをプレイします (現在は準備中です)]\n"); }
 void playGame_Roulette(UserData* user) { printf("[ルーレットをプレイします (現在は準備中です)]\n"); }
-void playGame_Chinchiro(UserData* user) { printf("[チンチロをプレイします (現在は準備中です)]\n"); }
